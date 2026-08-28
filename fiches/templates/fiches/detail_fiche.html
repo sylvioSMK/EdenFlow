@@ -9,7 +9,9 @@
                 {{ fiche.get_statut_display }}
             </span>
         </div>
+        {% if user.role == "CONFORMITE" %}
         <a href="#" class="btn btn-jaune">Imprimer la fiche (PDF)</a>
+        {% endif %}
     </div>
 </div>
 
