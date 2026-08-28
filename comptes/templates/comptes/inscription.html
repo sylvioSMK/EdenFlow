@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block titre %}Inscription | Optic's Eden{% endblock %}
 {% block contenu %}
-<section class="card auth-page">
+<section class="card auth-page auth-screen signup-screen">
     <div class="auth-intro">
         <div class="auth-mark">OE</div>
         <p class="eyebrow eyebrow-light">Votre regard, notre métier</p>
         <h1>Rejoignez l'équipe</h1>
-        <p>Créez votre espace professionnel pour suivre le parcours de chaque commande.</p>
+        <p>Créez votre espace professionnel et rejoignez le bon parcours dès votre première connexion.</p>
+        <div class="auth-points"><span>01 <b>Choisissez votre département</b></span><span>02 <b>Recevez votre espace dédié</b></span></div>
     </div>
     <div class="auth-form">
         <p class="eyebrow">Nouveau compte</p>
@@ -17,7 +18,7 @@
             {% for field in form %}
             <div class="field">
                 {{ field.label_tag }}{{ field }}{{ field.errors }}
-                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
             </div>
             {% endfor %}
             <button class="btn btn-primary" type="submit">Créer mon compte</button>
