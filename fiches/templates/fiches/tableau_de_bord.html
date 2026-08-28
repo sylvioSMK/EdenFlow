@@ -4,7 +4,7 @@
 <div class="dashboard-hero card">
     <div class="section-heading">
         <div>
-            <p class="eyebrow">Espace de travail</p>
+            <p class="eyebrow">Bonjour {{ user.first_name|default:user.username }}</p>
             <h1>
                 {% if user.role == "VENTE" %}Mes fiches de commande
                 {% elif user.role == "COMPTABILITE" %}Fiches en attente — Comptabilité
@@ -14,10 +14,14 @@
             </h2>
             <p class="section-subtitle">{{ compteur }} fiche{{ compteur|pluralize }} dans votre vue</p>
         </div>
-        {% if user.role == "VENTE" or user.role == "ADMIN" %}
-        <a href="{% url 'nouvelle_fiche' %}" class="btn btn-primary btn-auto">+ Nouvelle fiche</a>
-        {% endif %}
+        {% if user.role == "VENTE" or user.role == "ADMIN" %}<a href="{% url 'nouvelle_fiche' %}" class="btn btn-primary btn-auto">+ Nouvelle fiche</a>{% endif %}
     </div>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card stat-highlight"><span class="stat-icon">✦</span><small>Dans votre espace</small><strong>{{ compteur }}</strong><span>fiche{{ compteur|pluralize }} visible{{ compteur|pluralize }}</span></div>
+    <div class="stat-card"><span class="stat-icon">◷</span><small>Étape actuelle</small><strong>{% if user.role == "VENTE" %}01{% elif user.role == "COMPTABILITE" %}02{% elif user.role == "CONFORMITE" %}03{% else %}∞{% endif %}</strong><span>{{ user.get_role_display }}</span></div>
+    <div class="stat-card"><span class="stat-icon">↗</span><small>Accès</small><strong>100%</strong><span>Vue sécurisée</span></div>
 </div>
 
 <div class="card table-card">

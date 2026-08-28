@@ -7,19 +7,31 @@
     <title>{% block titre %}Optic's Eden{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
-<body>
-<header class="site-header">
-    <a class="logo" href="{% if user.is_authenticated %}{% url 'tableau_de_bord' %}{% else %}{% url 'connexion' %}{% endif %}">
-        OPTIC'S <span>EDEN</span>
-    </a>
-    {% if user.is_authenticated %}
-    <nav class="site-nav" aria-label="Navigation principale">
-        <a href="{% url 'tableau_de_bord' %}">Tableau de bord</a>
-        <a href="{% url 'recherche_fiches' %}">Recherche</a>
-        <a href="{% url 'deconnexion' %}">Déconnexion</a>
+<body class="{% if user.is_authenticated %}app-body{% endif %}">
+{% if user.is_authenticated %}
+<aside class="side-panel">
+    <a class="logo" href="{% url 'tableau_de_bord' %}">OPTIC'S <span>EDEN</span></a>
+    <div class="profile-chip">
+        <span class="profile-avatar">{{ user.first_name|first|default:user.username|first|upper }}</span>
+        <span><strong>{{ user.get_full_name|default:user.username }}</strong><small>{{ user.get_role_display }}</small></span>
+    </div>
+    <nav class="side-nav" aria-label="Navigation principale">
+        <a href="{% url 'tableau_de_bord' %}"><span>⌂</span> Tableau de bord</a>
+        <a href="{% url 'recherche_fiches' %}"><span>⌕</span> Rechercher une fiche</a>
+        {% if user.role == "VENTE" or user.role == "ADMIN" %}
+        <a href="{% url 'nouvelle_fiche' %}"><span>＋</span> Nouvelle fiche</a>
+        {% endif %}
     </nav>
-    {% endif %}
+    <div class="side-footer">
+        <div class="department-mark">{{ user.get_departement_display|default:user.get_role_display }}</div>
+        <a class="logout-link" href="{% url 'deconnexion' %}">Quitter l'espace <span>→</span></a>
+    </div>
+</aside>
+{% else %}
+<header class="site-header">
+    <a class="logo" href="{% url 'connexion' %}">OPTIC'S <span>EDEN</span></a>
 </header>
+{% endif %}
 <main class="page-shell">
     {% if messages %}
     <ul class="messages">
