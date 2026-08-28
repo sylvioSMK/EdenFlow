@@ -46,3 +46,24 @@ class InscriptionForm(UserCreationForm):
         if commit:
             utilisateur.save()
         return utilisateur
+
+
+class GestionUtilisateurForm(forms.ModelForm):
+    class Meta:
+        model = Utilisateur
+        fields = ("first_name", "last_name", "email", "role", "departement", "actif")
+        labels = {
+            "first_name": "Prénom",
+            "last_name": "Nom",
+            "email": "Adresse e-mail",
+            "role": "Rôle",
+            "departement": "Département",
+            "actif": "Compte actif",
+        }
+
+    def save(self, commit=True):
+        utilisateur = super().save(commit=False)
+        utilisateur.is_active = utilisateur.actif
+        if commit:
+            utilisateur.save()
+        return utilisateur

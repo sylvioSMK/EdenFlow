@@ -189,6 +189,17 @@ tr:hover td { background: #fffaf0; }
 .timeline-item > span { background: #9e2435; border: 3px solid #fff; border-radius: 50%; height: 11px; left: -27px; position: absolute; top: 5px; width: 11px; }
 .timeline-item strong, .timeline-item small { display: block; }
 .timeline-item p { color: #6b7280; font-size: .84rem; margin: 4px 0 22px; }
+.management-heading { align-items: center; display: flex; justify-content: space-between; padding: 24px 24px 16px; }
+.management-heading h2 { margin: 0; }
+.management-count { color: #6b7280; font-size: .82rem; }
+.empty-state { color: #6b7280; padding: 28px; text-align: center; }
+.management-form { max-width: 720px; margin: 0 auto; }
+.management-form h1 { margin: 0; }
+.management-form form { margin-top: 30px; }
+.management-form form p { display: grid; gap: 7px; margin: 18px 0; }
+.management-form form p label { margin: 0; }
+.management-form .form-actions { align-items: center; display: flex; gap: 12px; margin-top: 28px; }
+.btn-ghost { border: 1px solid #d8dce1; color: #171a1f; }
 @media (max-width: 850px) { .app-body { display: block; } .side-panel { min-height: auto; padding: 18px; position: static; } .side-panel .logo { margin: 0 0 20px; } .profile-chip { margin-bottom: 14px; } .side-nav { display: flex; flex-wrap: wrap; } .side-footer { display: none; } .detail-grid { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .dashboard-stats, .info-grid { grid-template-columns: 1fr; } .detail-heading { align-items: flex-start; flex-direction: column; gap: 20px; } .detail-heading .btn { width: 100%; } }
 

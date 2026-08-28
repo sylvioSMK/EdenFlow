@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titre %}Gestion du site — Optic's Eden{% endblock %}
+{% block contenu %}
+<div class="dashboard-hero card">
+    <div class="section-heading">
+        <div><p class="eyebrow">Pilotage interne</p><h1>Gestion du site</h1><p class="section-subtitle">Supervisez les équipes et le parcours des commandes.</p></div>
+        <span class="step-pill">Direction · Manager</span>
+    </div>
+</div>
+<div class="dashboard-stats">
+    <div class="stat-card stat-highlight"><small>Fiches au total</small><strong>{{ fiches_total }}</strong><span>commandes enregistrées</span></div>
+    <div class="stat-card"><small>À traiter</small><strong>{{ fiches_en_attente }}</strong><span>dans le circuit</span></div>
+    <div class="stat-card"><small>Équipe active</small><strong>{{ utilisateurs_actifs }}</strong><span>comptes actifs</span></div>
+</div>
+<div class="card table-card">
+    <div class="management-heading"><div><p class="eyebrow">Équipe</p><h2>Utilisateurs</h2></div><span class="management-count">{{ utilisateurs|length }} profil{{ utilisateurs|length|pluralize }}</span></div>
+    <table><thead><tr><th>Collaborateur</th><th>E-mail</th><th>Rôle</th><th>Département</th><th>État</th><th></th></tr></thead><tbody>
+    {% for utilisateur in utilisateurs %}<tr><td><strong>{{ utilisateur.get_full_name|default:utilisateur.username }}</strong></td><td>{{ utilisateur.email }}</td><td>{{ utilisateur.get_role_display }}</td><td>{{ utilisateur.get_departement_display }}</td><td>{% if utilisateur.actif and utilisateur.is_active %}<span class="badge badge-termine">Actif</span>{% else %}<span class="badge badge-annule">Inactif</span>{% endif %}</td><td><a href="{% url 'modifier_utilisateur' utilisateur.pk %}" class="btn btn-accent">Gérer</a></td></tr>{% empty %}<tr><td colspan="6" class="empty-state">Aucun utilisateur.</td></tr>{% endfor %}
+    </tbody></table>
+</div>
+{% endblock %}

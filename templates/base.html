@@ -21,6 +21,9 @@
         {% if user.role == "VENTE" or user.role == "ADMIN" %}
         <a href="{% url 'nouvelle_fiche' %}"><span>＋</span> Nouvelle fiche</a>
         {% endif %}
+        {% if user.role == "ADMIN" or user.is_superuser %}
+        <a href="{% url 'gestion' %}"><span>⚙</span> Gestion du site</a>
+        {% endif %}
     </nav>
     <div class="side-footer">
         <div class="department-mark">{{ user.get_departement_display|default:user.get_role_display }}</div>

@@ -10,4 +10,6 @@ urlpatterns = [
     ),
     path("inscription/", views.inscription, name="inscription"),
     path("deconnexion/", auth_views.LogoutView.as_view(), name="deconnexion"),
+    path("gestion/", views.gestion, name="gestion"),
+    path("gestion/utilisateur/<int:pk>/", views.modifier_utilisateur, name="modifier_utilisateur"),
 ]
