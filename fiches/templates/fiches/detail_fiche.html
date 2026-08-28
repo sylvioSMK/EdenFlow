@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block titre %}{{ fiche.numero_commande }} — Optic's Eden{% endblock %}
+{% block contenu %}
+<div class="carte">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h2 style="margin:0;">{{ fiche.numero_commande }} — {{ fiche.nom_prenoms }}</h2>
+            <span class="badge {% if fiche.statut == 'TERMINEE' %}badge-termine{% elif fiche.statut == 'ANNULEE' %}badge-annule{% else %}badge-attente{% endif %}">
+                {{ fiche.get_statut_display }}
+            </span>
+        </div>
+        <a href="#" class="btn btn-jaune">Imprimer la fiche (PDF)</a>
+    </div>
+</div>
+
+<div class="carte">
+    <h3>Récapitulatif</h3>
+    <div class="grille-2">
+        <p><strong>Téléphone :</strong> {{ fiche.telephone }}</p>
+        <p><strong>WhatsApp :</strong> {{ fiche.whatsapp|default:"—" }}</p>
+        <p><strong>Monture :</strong> {{ fiche.monture|default:"—" }}</p>
+        <p><strong>Verres :</strong> {{ fiche.verres|default:"—" }}</p>
+        <p><strong>Montant total :</strong> {{ fiche.montant_total }} F CFA</p>
+        <p><strong>Acompte :</strong> {{ fiche.acompte }} F CFA</p>
+        <p><strong>PEC assurance :</strong> {{ fiche.pec_assurance }} F CFA</p>
+        <p><strong>Reste à payer :</strong> {{ fiche.reste_a_payer }} F CFA</p>
+    </div>
+</div>
+
+{% if peut_agir and user.role == "COMPTABILITE" or peut_agir and user.role == "ADMIN" and fiche.statut == "ATTENTE_COMPTA" %}
+<div class="carte">
+    <h3>Vérification Comptabilité</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="valider_comptabilite">
+        <label>{{ form_compta.assurance_client.label }}</label>{{ form_compta.assurance_client }}
+        <label>{{ form_compta.nom_assurance.label }}</label>{{ form_compta.nom_assurance }}
+        <label>{{ form_compta.pec_assurance.label }}</label>{{ form_compta.pec_assurance }}
+        <label>{{ form_compta.acompte.label }}</label>{{ form_compta.acompte }}
+        <label>{{ form_compta.justificatif_assurance.label }}</label>{{ form_compta.justificatif_assurance }}
+        <label>{{ form_compta.commentaire_comptabilite.label }}</label>{{ form_compta.commentaire_comptabilite }}
+        <button type="submit" class="btn btn-rouge" style="margin-top:16px;">Valider et transmettre à la Conformité</button>
+    </form>
+</div>
+{% endif %}
+
+{% if peut_agir and user.role == "CONFORMITE" or peut_agir and user.role == "ADMIN" and fiche.statut == "ATTENTE_CONFORMITE" %}
+<div class="carte">
+    <h3>Vérification Conformité</h3>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="valider_conformite">
+        <label>{{ form_conformite.commentaire_conformite.label }}</label>{{ form_conformite.commentaire_conformite }}
+        <button type="submit" class="btn btn-rouge" style="margin-top:16px;">Valider la fiche</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="carte">
+    <h3>Historique</h3>
+    <table>
+        <thead><tr><th>Date</th><th>Action</th><th>Par</th><th>Détails</th></tr></thead>
+        <tbody>
+        {% for h in historique %}
+        <tr>
+            <td>{{ h.date_action|date:"d/m/Y H:i" }}</td>
+            <td>{{ h.action }}</td>
+            <td>{{ h.utilisateur }}</td>
+            <td>{{ h.details|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center; color:#999;">Aucun historique.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block titre %}Nouvelle fiche — Optic's Eden{% endblock %}
+{% block contenu %}
+<div class="card form-card">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Vente · Nouvelle commande</p>
+            <h1>Créer une fiche de commande</h1>
+            <p class="section-subtitle">Renseignez les informations du client, puis transmettez la fiche à la Comptabilité.</p>
+        </div>
+        <span class="step-pill">Étape 1 <span>/ 3</span></span>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <fieldset class="form-section">
+            <legend>Informations client</legend>
+            <div class="grille-2">
+                <div><label>{{ form.nom_prenoms.label }}</label>{{ form.nom_prenoms }}</div>
+                <div><label>{{ form.telephone.label }}</label>{{ form.telephone }}</div>
+                <div><label>{{ form.whatsapp.label }}</label>{{ form.whatsapp }}</div>
+                <div><label>{{ form.email.label }}</label>{{ form.email }}</div>
+                <div><label>{{ form.adresse.label }}</label>{{ form.adresse }}</div>
+                <div><label>{{ form.profession.label }}</label>{{ form.profession }}</div>
+                <div><label>{{ form.date_anniversaire.label }}</label>{{ form.date_anniversaire }}</div>
+                <div><label>{{ form.nom_facebook.label }}</label>{{ form.nom_facebook }}</div>
+            </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+            <legend>Ordonnance du Dr</legend>
+            <div class="grille-2">
+                <div><label>{{ form.ordonnance_du_dr.label }}</label>{{ form.ordonnance_du_dr }}</div>
+                <div><label>{{ form.date_ordonnance.label }}</label>{{ form.date_ordonnance }}</div>
+            </div>
+            <p style="font-weight:600; margin-top:16px;">OD (œil droit)</p>
+            <div class="grille-8">
+                <div><label>SPH</label>{{ form.od_sph }}</div>
+                <div><label>CYL</label>{{ form.od_cyl }}</div>
+                <div><label>AXE</label>{{ form.od_axe }}</div>
+                <div><label>ADD</label>{{ form.od_add }}</div>
+                <div><label>VP</label>{{ form.od_vp }}</div>
+                <div><label>HVP</label>{{ form.od_hvp }}</div>
+                <div><label>EG</label>{{ form.od_eg }}</div>
+                <div><label>ED</label>{{ form.od_ed }}</div>
+            </div>
+            <p style="font-weight:600; margin-top:16px;">OG (œil gauche)</p>
+            <div class="grille-8">
+                <div><label>SPH</label>{{ form.og_sph }}</div>
+                <div><label>CYL</label>{{ form.og_cyl }}</div>
+                <div><label>AXE</label>{{ form.og_axe }}</div>
+                <div><label>ADD</label>{{ form.og_add }}</div>
+                <div><label>VP</label>{{ form.og_vp }}</div>
+                <div><label>HVP</label>{{ form.og_hvp }}</div>
+                <div><label>EG</label>{{ form.og_eg }}</div>
+                <div><label>ED</label>{{ form.og_ed }}</div>
+            </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+            <legend>Monture et verres</legend>
+            <div class="grille-2">
+                <div><label>{{ form.monture.label }}</label>{{ form.monture }}</div>
+                <div><label>{{ form.verres.label }}</label>{{ form.verres }}</div>
+                <div><label>{{ form.divers_accessoires.label }}</label>{{ form.divers_accessoires }}</div>
+                <div><label>{{ form.offre_2eme_paire_monture.label }}</label>{{ form.offre_2eme_paire_monture }}</div>
+            </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+            <legend>Paiement et livraison</legend>
+            <div class="grille-2">
+                <div><label>{{ form.montant_total.label }}</label>{{ form.montant_total }}</div>
+                <div><label>{{ form.acompte.label }}</label>{{ form.acompte }}</div>
+                <div><label>{{ form.date_livraison.label }}</label>{{ form.date_livraison }}</div>
+            </div>
+            <p class="form-hint">
+                La PEC assurance et le reste à payer seront complétés par la Comptabilité à l'étape suivante.
+            </p>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary form-submit">
+            Enregistrer et envoyer à la Comptabilité
+        </button>
+    </form>
+</div>
+{% endblock %}

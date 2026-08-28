@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titre %}Optic's Eden{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<header class="site-header">
+    <a class="logo" href="{% if user.is_authenticated %}{% url 'tableau_de_bord' %}{% else %}{% url 'connexion' %}{% endif %}">
+        OPTIC'S <span>EDEN</span>
+    </a>
+    {% if user.is_authenticated %}
+    <nav class="site-nav" aria-label="Navigation principale">
+        <a href="{% url 'tableau_de_bord' %}">Tableau de bord</a>
+        <a href="{% url 'recherche_fiches' %}">Recherche</a>
+        <a href="{% url 'deconnexion' %}">Déconnexion</a>
+    </nav>
+    {% endif %}
+</header>
+<main class="page-shell">
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% block contenu %}{% endblock %}
+</main>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block titre %}Tableau de bord — Optic's Eden{% endblock %}
+{% block contenu %}
+<div class="dashboard-hero card">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Espace de travail</p>
+            <h1>
+                {% if user.role == "VENTE" %}Mes fiches de commande
+                {% elif user.role == "COMPTABILITE" %}Fiches en attente — Comptabilité
+                {% elif user.role == "CONFORMITE" %}Fiches en attente — Conformité
+                {% else %}Toutes les fiches
+                {% endif %}
+            </h2>
+            <p class="section-subtitle">{{ compteur }} fiche{{ compteur|pluralize }} dans votre vue</p>
+        </div>
+        {% if user.role == "VENTE" or user.role == "ADMIN" %}
+        <a href="{% url 'nouvelle_fiche' %}" class="btn btn-primary btn-auto">+ Nouvelle fiche</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card table-card">
+    <table>
+        <thead>
+        <tr>
+            <th>N° commande</th>
+            <th>Client</th>
+            <th>Statut</th>
+            <th>Créée le</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for fiche in fiches %}
+        <tr>
+            <td>{{ fiche.numero_commande }}</td>
+            <td>{{ fiche.nom_prenoms }}</td>
+            <td>
+                <span class="badge {% if fiche.statut == 'TERMINEE' %}badge-termine{% elif fiche.statut == 'ANNULEE' %}badge-annule{% else %}badge-attente{% endif %}">
+                    {{ fiche.get_statut_display }}
+                </span>
+            </td>
+            <td>{{ fiche.date_creation|date:"d/m/Y H:i" }}</td>
+            <td><a href="{% url 'detail_fiche' fiche.pk %}" class="btn btn-accent">Ouvrir</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center; color:#999; padding:24px;">Aucune fiche pour le moment.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

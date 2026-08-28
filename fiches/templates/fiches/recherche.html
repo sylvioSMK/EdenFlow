@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titre %}Recherche — Optic's Eden{% endblock %}
+{% block contenu %}
+<div class="card search-card">
+    <p class="eyebrow">Archives & suivi</p>
+    <h1>Rechercher une fiche</h1>
+    <form method="get" class="search-form">
+        <input type="search" name="q" value="{{ terme }}" placeholder="Nom, numéro de commande ou téléphone..." aria-label="Recherche">
+        <button type="submit" class="btn btn-primary btn-auto">Rechercher</button>
+    </form>
+</div>
+
+{% if terme %}
+<div class="card table-card">
+    <table>
+        <thead><tr><th>N° commande</th><th>Client</th><th>Statut</th><th></th></tr></thead>
+        <tbody>
+        {% for fiche in fiches %}
+        <tr>
+            <td>{{ fiche.numero_commande }}</td>
+            <td>{{ fiche.nom_prenoms }}</td>
+            <td>{{ fiche.get_statut_display }}</td>
+            <td><a href="{% url 'detail_fiche' fiche.pk %}" class="btn btn-accent">Ouvrir</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center; color:#999;">Aucun résultat.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

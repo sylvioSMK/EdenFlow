@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block titre %}Connexion | Optic's Eden{% endblock %}
+{% block contenu %}
+<section class="card auth-page">
+    <div class="auth-intro">
+        <div class="auth-mark">OE</div>
+        <p class="eyebrow eyebrow-light">L'art de mieux voir</p>
+        <h1>Bienvenue chez Optic's Eden</h1>
+        <p>Retrouvez vos commandes et accompagnez chaque client vers une vision plus claire.</p>
+    </div>
+    <div class="auth-form">
+        <p class="eyebrow">Espace professionnel</p>
+        <h2>Se connecter</h2>
+        <p style="color: var(--muted);">Accédez à votre espace de gestion.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% if form.errors %}<p class="errorlist">Identifiant ou mot de passe incorrect.</p>{% endif %}
+            <div class="field"><label for="id_username">Adresse e-mail</label><input id="id_username" name="username" type="email" autocomplete="email" required></div>
+            <div class="field"><label for="id_password">Mot de passe</label><input id="id_password" name="password" type="password" autocomplete="current-password" required></div>
+            <button class="btn btn-primary" type="submit">Se connecter</button>
+        </form>
+        <p class="auth-link">Pas encore de compte ? <a href="{% url 'inscription' %}">Créer un compte</a></p>
+    </div>
+</section>
+{% endblock %}
