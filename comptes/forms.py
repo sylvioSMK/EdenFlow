@@ -28,9 +28,9 @@ class InscriptionForm(UserCreationForm):
             raise forms.ValidationError("Cette adresse e-mail est déjà utilisée.")
         departement = self.cleaned_data.get("departement")
         domaines = {
-            Utilisateur.Departement.VENTE: "@vente.optics-eden.fr",
-            Utilisateur.Departement.COMPTABILITE: "@comptabilite.optics-eden.fr",
-            Utilisateur.Departement.CONFORMITE: "@conformite.optics-eden.fr",
+            Utilisateur.Departement.VENTE: "@vente.com",
+            Utilisateur.Departement.COMPTABILITE: "@comptabilite.com",
+            Utilisateur.Departement.CONFORMITE: "@conformite.com",
         }
         domaine_attendu = domaines.get(departement)
         if domaine_attendu and not email.endswith(domaine_attendu):
