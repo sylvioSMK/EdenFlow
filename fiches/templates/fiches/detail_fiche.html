@@ -9,7 +9,7 @@
             <p class="detail-number">{{ fiche.numero_commande }} · créée le {{ fiche.date_creation|date:"d/m/Y" }}</p>
             <span class="badge {% if fiche.statut == 'TERMINEE' %}badge-termine{% elif fiche.statut == 'ANNULEE' %}badge-annule{% else %}badge-attente{% endif %}">{{ fiche.get_statut_display }}</span>
         </div>
-        {% if user.role == "CONFORMITE" %}<a href="#" class="btn btn-jaune">Imprimer la fiche (PDF)</a>{% endif %}
+        {% if user.role == "CONFORMITE" %}<a href="{% url 'telecharger_fiche' fiche.pk %}" class="btn btn-jaune">Télécharger la fiche (PDF)</a>{% endif %}
     </div>
 </div>
 
