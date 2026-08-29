@@ -18,9 +18,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from comptes import views as comptes_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', comptes_views.accueil, name='accueil'),
     path('', include('comptes.urls')),
     path('fiches/', include('fiches.urls')),
 ]

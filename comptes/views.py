@@ -10,6 +10,12 @@ from .models import Utilisateur
 from fiches.models import FicheCommande
 
 
+def accueil(request):
+    if request.user.is_authenticated:
+        return redirect("tableau_de_bord")
+    return redirect("connexion")
+
+
 def inscription(request):
     if request.user.is_authenticated:
         return redirect("tableau_de_bord")

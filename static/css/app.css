@@ -229,7 +229,7 @@ body:not(.app-body) .page-shell { max-width: 1180px; padding-top: 34px; }
 .auth-screen .auth-link { border-top: 1px solid #edf0f2; padding-top: 22px; }
 .field-help, #format-email { color: #6b7280; display: block; font-size: .75rem; line-height: 1.4; margin-top: 6px; }
 .signup-screen { min-height: 700px; }
-@media (max-width: 700px) { body:not(.app-body) .page-shell { padding: 18px 14px 30px; } .auth-screen .auth-intro h1 { margin-top: 45px; } .auth-points { margin-top: 35px; } .signup-screen { min-height: 0; } }
+@media (max-width: 700px) { body:not(.app-body) .page-shell { padding: 18px 14px 30px; } .auth-screen { display: block; margin: 0 auto; } .auth-screen .auth-intro { min-height: 430px; padding: 30px 28px; } .auth-screen .auth-intro h1 { margin-top: 45px; } .auth-points { margin-top: 35px; } .auth-screen .auth-form { padding: 30px 28px; } .signup-screen { min-height: 0; } }
 
 /* Solar editorial direction inspired by the supplied reference: bold, playful,
    and intentionally different from a generic SaaS dashboard. */
