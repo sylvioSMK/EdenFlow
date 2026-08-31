@@ -142,60 +142,168 @@ def telecharger_fiche(request, pk):
         return redirect("tableau_de_bord")
 
     from io import BytesIO
-    from reportlab.lib import colors
-    from reportlab.lib.enums import TA_CENTER
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.units import mm
-    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    from reportlab.pdfgen import canvas
 
     fiche = get_object_or_404(FicheCommande, pk=pk)
     buffer = BytesIO()
-    document = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=15 * mm, leftMargin=15 * mm, topMargin=14 * mm, bottomMargin=14 * mm, title=f"Fiche {fiche.numero_commande}")
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name="FicheTitle", parent=styles["Title"], fontSize=20, leading=24, textColor=colors.HexColor("#d52b1e"), alignment=TA_CENTER, spaceAfter=4))
-    styles.add(ParagraphStyle(name="Section", parent=styles["Heading2"], fontSize=11, leading=14, textColor=colors.white, backColor=colors.HexColor("#d52b1e"), spaceBefore=8, spaceAfter=0, leftIndent=6))
-    styles.add(ParagraphStyle(name="Cell", parent=styles["BodyText"], fontSize=8.5, leading=11))
 
-    def valeur(value):
-        return str(value) if value not in (None, "") else "—"
+    page_width, page_height = landscape(A4)
+    pdf = canvas.Canvas(buffer, pagesize=(page_width, page_height))
+    pdf.setTitle(f"Fiche {fiche.numero_commande}")
+    pdf.setLineWidth(0.6)
+    pdf.setFont("Helvetica", 7)
 
-    def section(titre, lignes):
-        data = [[Paragraph(f"<b>{label}</b>", styles["Cell"]), Paragraph(valeur(value), styles["Cell"])] for label, value in lignes]
-        table = Table(data, colWidths=[52 * mm, 128 * mm], hAlign="LEFT")
-        table.setStyle(TableStyle([
-            ("GRID", (0, 0), (-1, -1), .35, colors.HexColor("#eadfd4")),
-            ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#fff5df")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-        ]))
-        return [Paragraph(titre, styles["Section"]), table]
+    def value(value):
+        return "" if value in (None, "") else str(value)
 
-    story = [Paragraph("OPTIC'S EDEN", styles["FicheTitle"]), Paragraph(f"<b>FICHE DE COMMANDE</b> · {fiche.numero_commande}", styles["Normal"]), Spacer(1, 5 * mm)]
-    story += section("IDENTIFICATION DU CLIENT", [
-        ("Nom et prénoms", fiche.nom_prenoms), ("Téléphone", fiche.telephone), ("WhatsApp", fiche.whatsapp),
-        ("E-mail", fiche.email), ("Adresse", fiche.adresse), ("Profession", fiche.profession),
-        ("Date d'anniversaire", fiche.date_anniversaire), ("Nom Facebook", fiche.nom_facebook),
-    ])
-    story += section("ORDONNANCE", [
-        ("Ordonnance du Dr", fiche.ordonnance_du_dr), ("Date", fiche.date_ordonnance),
-        ("OD (œil droit)", f"SPH {fiche.od_sph} · CYL {fiche.od_cyl} · AXE {fiche.od_axe} · ADD {fiche.od_add} · VP {fiche.od_vp} · HVP {fiche.od_hvp} · EG {fiche.od_eg} · ED {fiche.od_ed}"),
-        ("OG (œil gauche)", f"SPH {fiche.og_sph} · CYL {fiche.og_cyl} · AXE {fiche.og_axe} · ADD {fiche.og_add} · VP {fiche.og_vp} · HVP {fiche.og_hvp} · EG {fiche.og_eg} · ED {fiche.og_ed}"),
-    ])
-    story += section("MONTURE ET VERRES", [
-        ("Monture", fiche.monture), ("Verres", fiche.verres), ("Divers / accessoires", fiche.divers_accessoires),
-        ("Offre 2e paire", fiche.offre_2eme_paire_monture),
-    ])
-    story += section("PAIEMENT ET LIVRAISON", [
-        ("Montant total", f"{fiche.montant_total} F CFA"), ("Acompte", f"{fiche.acompte} F CFA"),
-        ("PEC assurance", f"{fiche.pec_assurance} F CFA"), ("Reste à payer", f"{fiche.reste_a_payer} F CFA"),
-        ("Client assuré", "Oui" if fiche.assurance_client else "Non"), ("Assurance", fiche.nom_assurance),
-        ("Date de livraison", fiche.date_livraison), ("Date commande soldée", fiche.commande_soldee_le),
-    ])
-    document.build(story)
+    def line(x1, y1, x2, y2):
+        pdf.line(x1, y1, x2, y2)
+
+    def label_line(x, y, label, text="", width=46 * mm, font_size=7):
+        pdf.setFont("Helvetica-Bold", font_size)
+        pdf.drawString(x, y, label)
+        label_width = pdf.stringWidth(label, "Helvetica-Bold", font_size)
+        line(x + label_width + 2, y - 1, x + width, y - 1)
+        if text:
+            pdf.setFont("Helvetica", font_size)
+            pdf.drawString(x + label_width + 4, y + 1, text[:45])
+
+    def dotted_field(x, y, width, text=""):
+        pdf.setDash(1, 2)
+        line(x, y, x + width, y)
+        pdf.setDash()
+        if text:
+            pdf.setFont("Helvetica", 7)
+            pdf.drawString(x + 2, y + 2, text[:45])
+
+    def draw_main_form(x, y, width, height):
+        top = y + height
+        pdf.rect(x, y, width, height)
+        pdf.setFont("Helvetica-Bold", 18)
+        pdf.drawString(x + 5 * mm, top - 9 * mm, "OPTIC'S EDEN")
+        pdf.setFont("Helvetica", 6)
+        pdf.drawString(x + 5 * mm, top - 13 * mm, "Boulevard de la Kara")
+        pdf.drawString(x + 5 * mm, top - 16 * mm, "En face de la pharmacie St. Kisito")
+        pdf.drawString(x + 5 * mm, top - 19 * mm, "Tél: (+228) 93 21 28 93")
+        pdf.setFont("Helvetica-Bold", 13)
+        pdf.drawCentredString(x + width * .68, top - 10 * mm, "FICHE DE COMMANDE")
+        pdf.setFont("Helvetica-Bold", 10)
+        pdf.drawString(x + width * .68, top - 17 * mm, f"N° {fiche.numero_commande}")
+        label_line(x + 5 * mm, top - 27 * mm, "Date :", fiche.date_creation.strftime("%d/%m/%Y"), 45 * mm)
+
+        client_top = top - 33 * mm
+        client_bottom = top - 75 * mm
+        line(x, client_top, x + width, client_top)
+        line(x + width * .68, client_top, x + width * .68, client_bottom)
+        line(x, client_bottom, x + width, client_bottom)
+        pdf.setFont("Helvetica-Bold", 8)
+        pdf.drawString(x + 5 * mm, client_top - 5 * mm, "Nom et prénoms :")
+        dotted_field(x + 31 * mm, client_top - 5 * mm, width * .32, value(fiche.nom_prenoms))
+        label_line(x + 5 * mm, client_top - 12 * mm, "Profession :", value(fiche.profession), 70 * mm)
+        label_line(x + 5 * mm, client_top - 19 * mm, "Tél WhatsApp :", value(fiche.whatsapp or fiche.telephone), 70 * mm)
+        label_line(x + 5 * mm, client_top - 26 * mm, "Nom d'utilisateur Facebook :", value(fiche.nom_facebook), 70 * mm, 6)
+        label_line(x + 5 * mm, client_top - 34 * mm, "E-mail :", value(fiche.email), 70 * mm)
+        label_line(x + width * .68 + 5 * mm, client_top - 12 * mm, "Date d'anniversaire :", value(fiche.date_anniversaire), width * .30)
+        label_line(x + width * .68 + 5 * mm, client_top - 24 * mm, "Adresse :", value(fiche.adresse), width * .30)
+
+        rx, rw = x + 5 * mm, width - 10 * mm
+        ord_top = client_bottom - 5 * mm
+        pdf.setFont("Helvetica-Bold", 8)
+        pdf.drawString(rx, ord_top, "Ordonnance du Dr :")
+        dotted_field(rx + 28 * mm, ord_top, 53 * mm, value(fiche.ordonnance_du_dr))
+        pdf.drawString(rx + 88 * mm, ord_top, "du :")
+        dotted_field(rx + 96 * mm, ord_top, 30 * mm, value(fiche.date_ordonnance))
+        table_top, table_bottom = ord_top - 5 * mm, ord_top - 43 * mm
+        table_x, table_w = rx, rw * .78
+        pdf.rect(table_x, table_bottom, table_w, table_top - table_bottom)
+        columns = [0, .18, .34, .50, .66, .82, 1]
+        for fraction in columns[1:-1]:
+            line(table_x + table_w * fraction, table_bottom, table_x + table_w * fraction, table_top)
+        line(table_x, table_top - 10 * mm, table_x + table_w, table_top - 10 * mm)
+        line(table_x, table_top - 24 * mm, table_x + table_w, table_top - 24 * mm)
+        headers = ["", "SPH", "CYL", "AXE", "ADD", "VP"]
+        for index, header in enumerate(headers):
+            if header:
+                pdf.setFont("Helvetica-Bold", 8)
+                pdf.drawCentredString(table_x + table_w * (columns[index] + columns[index + 1]) / 2, table_top - 6 * mm, header)
+        pdf.setFont("Helvetica-Bold", 8)
+        pdf.drawString(table_x + 2 * mm, table_top - 17 * mm, "OD")
+        pdf.drawString(table_x + 2 * mm, table_top - 31 * mm, "OG")
+        values = [
+            [fiche.od_sph, fiche.od_cyl, fiche.od_axe, fiche.od_add, fiche.od_vp],
+            [fiche.og_sph, fiche.og_cyl, fiche.og_axe, fiche.og_add, fiche.og_vp],
+        ]
+        for row, row_values in enumerate(values):
+            row_y = table_top - (17 if row == 0 else 31) * mm
+            for index, text in enumerate(row_values, start=1):
+                pdf.setFont("Helvetica", 7)
+                pdf.drawCentredString(table_x + table_w * (columns[index] + columns[index + 1]) / 2, row_y, value(text))
+        pdf.setFont("Helvetica", 7)
+        side_x = table_x + table_w + 3 * mm
+        for index, (label, field) in enumerate([
+            ("ED", fiche.od_ed), ("EG", fiche.od_eg), ("HVP", fiche.od_hvp), ("HVP", fiche.og_hvp)
+        ]):
+            label_line(side_x, table_top - (7 + index * 8) * mm, f"{label} :", value(field), 31 * mm)
+
+        product_top = table_bottom - 4 * mm
+        row_height = 11 * mm
+        product_rows = [
+            ("Monture :", fiche.monture),
+            ("Verres :", fiche.verres),
+            ("Divers / accessoires :", fiche.divers_accessoires),
+            ("Offre 2e paire Monture :", fiche.offre_2eme_paire_monture),
+        ]
+        for index, (label, text) in enumerate(product_rows):
+            row_y = product_top - index * row_height
+            line(rx, row_y, rx + rw, row_y)
+            label_line(rx + 2 * mm, row_y - 7 * mm, label, value(text), 90 * mm, 7)
+        line(rx, product_top - len(product_rows) * row_height, rx + rw, product_top - len(product_rows) * row_height)
+
+        bottom = y + 5 * mm
+        label_line(rx, bottom + 21 * mm, "Livraison le :", value(fiche.date_livraison), 70 * mm)
+        label_line(rx, bottom + 13 * mm, "Commande soldée le :", value(fiche.commande_soldee_le), 70 * mm)
+        total_x = x + width * .55
+        line(total_x, y, total_x, bottom + 29 * mm)
+        pdf.setFont("Helvetica-Bold", 17)
+        pdf.drawCentredString(total_x + (x + width - total_x) / 2, bottom + 18 * mm, "TOTAL")
+        pdf.setFont("Helvetica", 7)
+        label_line(total_x + 3 * mm, bottom + 11 * mm, "Acompte :", f"{fiche.acompte} F CFA", 45 * mm)
+        label_line(total_x + 3 * mm, bottom + 5 * mm, "PEC :", f"{fiche.pec_assurance} F CFA", 45 * mm)
+        label_line(total_x + 3 * mm, bottom - 1 * mm, "Reste à payer :", f"{fiche.reste_a_payer} F CFA", 45 * mm)
+
+    def draw_duplicate(x, y, width, height):
+        top = y + height
+        pdf.rect(x, y, width, height)
+        pdf.setFont("Helvetica-Bold", 15)
+        pdf.drawString(x + 4 * mm, top - 9 * mm, "OPTIC'S EDEN")
+        pdf.setFont("Helvetica", 5.5)
+        pdf.drawString(x + 4 * mm, top - 13 * mm, "Boulevard de la Kara")
+        pdf.drawString(x + 4 * mm, top - 16 * mm, "En face de la pharmacie St. Kisito")
+        pdf.drawString(x + 4 * mm, top - 19 * mm, "Tél: (+228) 93 21 28 93")
+        pdf.setFont("Helvetica-Bold", 11)
+        pdf.drawCentredString(x + width * .63, top - 9 * mm, "COMMANDE")
+        pdf.drawString(x + width * .63, top - 16 * mm, f"N° {fiche.numero_commande}")
+        label_line(x + 4 * mm, top - 27 * mm, "Date :", fiche.date_creation.strftime("%d/%m/%Y"), width - 8 * mm, 6)
+        y_cursor = top - 37 * mm
+        fields = [
+            ("Nom et prénoms", fiche.nom_prenoms), ("Tél", fiche.telephone),
+            ("Monture", fiche.monture), ("Verres", fiche.verres),
+            ("Montant total", f"{fiche.montant_total} F CFA"), ("Acompte", f"{fiche.acompte} F CFA"),
+            ("PEC", f"{fiche.pec_assurance} F CFA"), ("Reste à payer", f"{fiche.reste_a_payer} F CFA"),
+            ("Livraison le", value(fiche.date_livraison)), ("Soldée le", value(fiche.commande_soldee_le)),
+        ]
+        for label, text in fields:
+            label_line(x + 4 * mm, y_cursor, f"{label} :", value(text), width - 8 * mm, 6)
+            y_cursor -= 10 * mm
+
+    form_y, form_h = 10 * mm, page_height - 20 * mm
+    draw_main_form(10 * mm, form_y, 185 * mm, form_h)
+    draw_duplicate(200 * mm, form_y, page_width - 210 * mm, form_h)
+    pdf.showPage()
+    pdf.save()
+
     response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="fiche-{fiche.numero_commande.replace("/", "-")}.pdf"'
     return response
