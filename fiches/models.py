@@ -1,6 +1,14 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils import timezone
+
+
+def validate_justificatif_assurance(value):
+    """Limite la taille et le type des justificatifs d'assurance."""
+    if value.size > 5 * 1024 * 1024:
+        raise ValidationError("Le justificatif ne doit pas dépasser 5 Mo.")
 
 
 class FicheCommande(models.Model):
@@ -81,7 +89,14 @@ class FicheCommande(models.Model):
     assurance_client = models.BooleanField(default=False, verbose_name="Client assuré")
     nom_assurance = models.CharField(max_length=150, blank=True, verbose_name="Nom de l'assurance")
     justificatif_assurance = models.FileField(
-        upload_to="justificatifs/", blank=True, null=True, verbose_name="Justificatif d'assurance"
+        upload_to="justificatifs/",
+        blank=True,
+        null=True,
+        verbose_name="Justificatif d'assurance",
+        validators=[
+            FileExtensionValidator(allowed_extensions=["pdf", "jpg", "jpeg", "png"]),
+            validate_justificatif_assurance,
+        ],
     )
 
     # --- Livraison ---

@@ -8,11 +8,17 @@ Vente, Comptabilité et Conformité.
 ```bash
 python3 -m venv venv
 source venv/bin/activate          # ou venv\Scripts\activate sous Windows
-pip install django
+pip install -r requirements.txt
 python3 manage.py migrate
 python3 manage.py createsuperuser
 python3 manage.py runserver
 ```
+
+## Configuration MySQL et variables d'environnement
+
+Le projet utilise des variables d'environnement pour la base de données et la clé secrète Django. Copiez le fichier `.env.example` vers `.env` et adaptez les valeurs selon votre environnement.
+
+Pour le développement local/test actuel, la configuration attend une base MySQL nommée `edenflow` sur `localhost`, avec un utilisateur `root` sans mot de passe. Cette configuration est acceptable uniquement pour le développement local. Avant toute mise en production, il faudra créer un utilisateur MySQL dédié non-root avec mot de passe fort, limité aux permissions strictement nécessaires sur la base `edenflow`.
 
 ## Créer des comptes de test (un par rôle)
 

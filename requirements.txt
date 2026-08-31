@@ -1,2 +1,4 @@
 Django==4.2.30
+python-decouple==3.8
+PyMySQL==1.1.1
 reportlab==4.4.3
