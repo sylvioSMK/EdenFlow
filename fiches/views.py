@@ -2,9 +2,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from .forms import FicheCommandeForm, ValidationComptabiliteForm, ValidationConformiteForm
-from .models import ConflitDeStatut, FicheCommande
+from .models import ConflitDeStatut, FicheCommande, HistoriqueFiche
 
 
 def fiches_visibles_par(utilisateur):
@@ -21,19 +22,171 @@ def fiches_visibles_par(utilisateur):
 
 @login_required
 def tableau_de_bord(request):
-    """
-    Affiche uniquement les fiches concernant le rôle connecté.
-    C'est ce filtrage qui fait qu'une fiche "apparaît" chez le département
-    suivant : elle était déjà cherchée au même endroit, elle correspond juste
-    au critère maintenant que son statut a changé.
-    """
-    fiches = fiches_visibles_par(request.user)
+    """Dashboard central avec accès par département et vue globale."""
+    fiches = FicheCommande.objects.all()
+    statistiques = {
+        "total": fiches.count(),
+        "terminees": fiches.filter(statut=FicheCommande.Statut.TERMINEE).count(),
+        "en_attente_compta": fiches.filter(statut=FicheCommande.Statut.ATTENTE_COMPTA).count(),
+        "en_attente_conformite": fiches.filter(statut=FicheCommande.Statut.ATTENTE_CONFORMITE).count(),
+    }
+
+    departements = [
+        {
+            "role": "VENTE",
+            "label": "Vente",
+            "description": "Création, suivi commercial et préparation des commandes.",
+            "count": fiches.filter(statut=FicheCommande.Statut.CREEE).count(),
+        },
+        {
+            "role": "COMPTABILITE",
+            "label": "Comptabilité",
+            "description": "Validation des paiements, assurances et montants.",
+            "count": fiches.filter(statut=FicheCommande.Statut.ATTENTE_COMPTA).count(),
+        },
+        {
+            "role": "CONFORMITE",
+            "label": "Conformité",
+            "description": "Contrôle final avant clôture de la commande.",
+            "count": fiches.filter(statut=FicheCommande.Statut.ATTENTE_CONFORMITE).count(),
+        },
+    ]
+
+    if request.user.is_superuser or request.user.role == "ADMIN":
+        departements.append(
+            {
+                "role": "ADMIN",
+                "label": "Admin",
+                "description": "Vue globale de tous les départements et des indicateurs.",
+                "count": fiches.count(),
+            }
+        )
+
+    for departement in departements:
+        role = departement["role"]
+        if request.user.is_superuser or request.user.role == "ADMIN":
+            departement["can_access"] = True
+        else:
+            departement["can_access"] = (request.user.role == role)
+        departement["url"] = reverse("departement_fiches", args=[role]) if departement["can_access"] else None
 
     contexte = {
+        "statistiques": statistiques,
+        "departements": departements,
+        "user_role": request.user.role,
+    }
+    return render(request, "fiches/tableau_de_bord.html", contexte)
+
+
+def _peut_acceder_au_departement(utilisateur, role):
+    if utilisateur.is_superuser or utilisateur.role == "ADMIN":
+        return True
+    return utilisateur.role == role
+
+
+def _fiches_departement(role, utilisateur):
+    if role == "VENTE":
+        if utilisateur.is_superuser or utilisateur.role == "ADMIN":
+            return FicheCommande.objects.all()
+        if utilisateur.role == "VENTE":
+            return FicheCommande.objects.filter(cree_par=utilisateur)
+        return FicheCommande.objects.none()
+    if role == "COMPTABILITE":
+        if utilisateur.is_superuser or utilisateur.role == "ADMIN":
+            return FicheCommande.objects.filter(statut=FicheCommande.Statut.ATTENTE_COMPTA)
+        if utilisateur.role == "COMPTABILITE":
+            return FicheCommande.objects.filter(statut=FicheCommande.Statut.ATTENTE_COMPTA)
+        return FicheCommande.objects.none()
+    if role == "CONFORMITE":
+        if utilisateur.is_superuser or utilisateur.role == "ADMIN":
+            return FicheCommande.objects.filter(statut=FicheCommande.Statut.ATTENTE_CONFORMITE)
+        if utilisateur.role == "CONFORMITE":
+            return FicheCommande.objects.filter(statut=FicheCommande.Statut.ATTENTE_CONFORMITE)
+        return FicheCommande.objects.none()
+    if role == "ADMIN":
+        return FicheCommande.objects.all() if (utilisateur.is_superuser or utilisateur.role == "ADMIN") else FicheCommande.objects.none()
+    return FicheCommande.objects.none()
+
+
+@login_required
+def departement_fiches(request, role):
+    if not _peut_acceder_au_departement(request.user, role):
+        messages.error(request, "Accès refusé : ce département n'est pas autorisé pour votre compte.")
+        return redirect("tableau_de_bord")
+
+    fiches = _fiches_departement(role, request.user)
+    contexte = {
+        "role": role,
+        "role_label": {
+            "VENTE": "Vente",
+            "COMPTABILITE": "Comptabilité",
+            "CONFORMITE": "Conformité",
+            "ADMIN": "Admin",
+        }.get(role, role),
         "fiches": fiches,
         "compteur": fiches.count(),
     }
-    return render(request, "fiches/tableau_de_bord.html", contexte)
+    return render(request, "fiches/departement_fiches.html", contexte)
+
+
+@login_required
+def statistiques(request):
+    if not (request.user.is_superuser or request.user.role == "ADMIN"):
+        messages.error(request, "Accès réservé à l'Admin.")
+        return redirect("tableau_de_bord")
+
+    fiches = FicheCommande.objects.all()
+    statuts_raw = [
+        ("Créées", fiches.filter(statut=FicheCommande.Statut.CREEE).count()),
+        ("En attente comptabilité", fiches.filter(statut=FicheCommande.Statut.ATTENTE_COMPTA).count()),
+        ("En attente conformité", fiches.filter(statut=FicheCommande.Statut.ATTENTE_CONFORMITE).count()),
+        ("Terminées", fiches.filter(statut=FicheCommande.Statut.TERMINEE).count()),
+        ("Annulées", fiches.filter(statut=FicheCommande.Statut.ANNULEE).count()),
+    ]
+    volumes_raw = [
+        ("Vente", fiches.filter(cree_par__role="VENTE").count()),
+        ("Comptabilité", fiches.filter(statut=FicheCommande.Statut.ATTENTE_COMPTA).count()),
+        ("Conformité", fiches.filter(statut=FicheCommande.Statut.ATTENTE_CONFORMITE).count()),
+    ]
+
+    max_statut = max(value for _, value in statuts_raw) if statuts_raw else 0
+    max_volume = max(value for _, value in volumes_raw) if volumes_raw else 0
+
+    statuts = [{"label": label, "value": value, "width": (value / max_statut * 100) if max_statut else 0} for label, value in statuts_raw]
+    volumes = [{"label": label, "value": value, "width": (value / max_volume * 100) if max_volume else 0} for label, value in volumes_raw]
+
+    contexte = {
+        "statuts": statuts,
+        "volumes": volumes,
+    }
+    return render(request, "fiches/statistiques.html", contexte)
+
+
+@login_required
+def historique_departements(request, role=None):
+    if request.user.is_superuser or request.user.role == "ADMIN":
+        historiques = HistoriqueFiche.objects.select_related('fiche', 'utilisateur').all()
+        role_label = "Tous les départements"
+        role = role or "ADMIN"
+    else:
+        if role and role != request.user.role:
+            messages.error(request, "Accès refusé à l'historique d'un autre département.")
+            return redirect("tableau_de_bord")
+        role = request.user.role
+        historiques = HistoriqueFiche.objects.filter(utilisateur__role=role).select_related('fiche', 'utilisateur')
+        role_label = {
+            "VENTE": "Vente",
+            "COMPTABILITE": "Comptabilité",
+            "CONFORMITE": "Conformité",
+        }.get(role, role)
+
+    contexte = {
+        "historiques": historiques,
+        "role": role,
+        "role_label": role_label,
+        "is_admin": request.user.is_superuser or request.user.role == "ADMIN",
+    }
+    return render(request, "fiches/historique.html", contexte)
 
 
 @login_required

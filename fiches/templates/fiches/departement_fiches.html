@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block titre %}{{ role_label }} — Optic's Eden{% endblock %}
+{% block contenu %}
+<div class="dashboard-shell">
+    <div class="dashboard-header compact-header">
+        <div>
+            <p class="eyebrow">Espace {{ role_label }}</p>
+            <h1>{{ role_label }}</h1>
+        </div>
+        <a href="{% url 'tableau_de_bord' %}" class="btn btn-ghost">Retour au dashboard</a>
+    </div>
+
+    <div class="card table-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>N° commande</th>
+                    <th>Client</th>
+                    <th>Statut</th>
+                    <th>Créée le</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fiche in fiches %}
+                <tr>
+                    <td>{{ fiche.numero_commande }}</td>
+                    <td>{{ fiche.nom_prenoms }}</td>
+                    <td>
+                        <span class="badge {% if fiche.statut == 'TERMINEE' %}badge-termine{% elif fiche.statut == 'ANNULEE' %}badge-annule{% else %}badge-attente{% endif %}">
+                            {{ fiche.get_statut_display }}
+                        </span>
+                    </td>
+                    <td>{{ fiche.date_creation|date:"d/m/Y H:i" }}</td>
+                    <td><a href="{% url 'detail_fiche' fiche.pk %}" class="btn btn-accent">Ouvrir</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">Aucune fiche pour ce département.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

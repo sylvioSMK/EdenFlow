@@ -1,57 +1,77 @@
 {% extends "base.html" %}
-{% block titre %}Tableau de bord — Optic's Eden{% endblock %}
+{% block titre %}Dashboard — Optic's Eden{% endblock %}
 {% block contenu %}
-<div class="dashboard-hero card">
-    <div class="section-heading">
+<div class="dashboard-shell">
+    <div class="dashboard-header">
         <div>
             <p class="eyebrow">Bonjour {{ user.first_name|default:user.username }}</p>
-            <h1>
-                {% if user.role == "VENTE" %}Mes fiches de commande
-                {% elif user.role == "COMPTABILITE" %}Fiches en attente — Comptabilité
-                {% elif user.role == "CONFORMITE" %}Fiches en attente — Conformité
-                {% else %}Toutes les fiches
-                {% endif %}
-            </h2>
-            <p class="section-subtitle">{{ compteur }} fiche{{ compteur|pluralize }} dans votre vue</p>
+            <h1>Dashboard EdenFlow</h1>
         </div>
-        {% if user.role == "VENTE" or user.role == "ADMIN" %}<a href="{% url 'nouvelle_fiche' %}" class="btn btn-primary btn-auto">+ Nouvelle fiche</a>{% endif %}
+        {% if user.role == "VENTE" or user.role == "ADMIN" %}
+            <a href="{% url 'nouvelle_fiche' %}" class="btn btn-primary btn-auto">+ Nouvelle fiche</a>
+        {% endif %}
     </div>
-</div>
 
-<div class="dashboard-stats">
-    <div class="stat-card stat-highlight"><span class="stat-icon">✦</span><small>Dans votre espace</small><strong>{{ compteur }}</strong><span>fiche{{ compteur|pluralize }} visible{{ compteur|pluralize }}</span></div>
-    <div class="stat-card"><span class="stat-icon">◷</span><small>Étape actuelle</small><strong>{% if user.role == "VENTE" %}01{% elif user.role == "COMPTABILITE" %}02{% elif user.role == "CONFORMITE" %}03{% else %}∞{% endif %}</strong><span>{{ user.get_role_display }}</span></div>
-    <div class="stat-card"><span class="stat-icon">↗</span><small>Accès</small><strong>100%</strong><span>Vue sécurisée</span></div>
-</div>
+    <div class="summary-grid">
+        <div class="summary-card summary-featured">
+            <small>Total</small>
+            <strong>{{ statistiques.total }}</strong>
+            <span>fiches enregistrées</span>
+        </div>
+        <div class="summary-card">
+            <small>Terminées</small>
+            <strong>{{ statistiques.terminees }}</strong>
+            <span>commandes clôturées</span>
+        </div>
+        <div class="summary-card">
+            <small>Comptabilité</small>
+            <strong>{{ statistiques.en_attente_compta }}</strong>
+            <span>en attente</span>
+        </div>
+        <div class="summary-card">
+            <small>Conformité</small>
+            <strong>{{ statistiques.en_attente_conformite }}</strong>
+            <span>en attente</span>
+        </div>
+    </div>
 
-<div class="card table-card">
-    <table>
-        <thead>
-        <tr>
-            <th>N° commande</th>
-            <th>Client</th>
-            <th>Statut</th>
-            <th>Créée le</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for fiche in fiches %}
-        <tr>
-            <td>{{ fiche.numero_commande }}</td>
-            <td>{{ fiche.nom_prenoms }}</td>
-            <td>
-                <span class="badge {% if fiche.statut == 'TERMINEE' %}badge-termine{% elif fiche.statut == 'ANNULEE' %}badge-annule{% else %}badge-attente{% endif %}">
-                    {{ fiche.get_statut_display }}
-                </span>
-            </td>
-            <td>{{ fiche.date_creation|date:"d/m/Y H:i" }}</td>
-            <td><a href="{% url 'detail_fiche' fiche.pk %}" class="btn btn-accent">Ouvrir</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" style="text-align:center; color:#999; padding:24px;">Aucune fiche pour le moment.</td></tr>
+    <div class="department-grid">
+        {% for departement in departements %}
+            <div class="department-card {% if not departement.can_access %}department-card-disabled{% endif %}">
+                {% if departement.can_access %}
+                    <a href="{{ departement.url }}" class="department-link">
+                        <span class="department-tag">{{ departement.label }}</span>
+                        <h2>{{ departement.label }}</h2>
+                        <p>{{ departement.description }}</p>
+                        <div class="department-meta">
+                            <strong>{{ departement.count }}</strong>
+                            <span>en attente</span>
+                        </div>
+                    </a>
+                {% else %}
+                    <div class="department-link disabled-link" aria-disabled="true">
+                        <span class="department-tag">{{ departement.label }}</span>
+                        <h2>{{ departement.label }}</h2>
+                        <p>{{ departement.description }}</p>
+                        <div class="department-meta">
+                            <strong>{{ departement.count }}</strong>
+                            <span>accès refusé</span>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
         {% endfor %}
-        </tbody>
-    </table>
+    </div>
+
+    {% if user.role == "ADMIN" or user.is_superuser %}
+    <div class="dashboard-actions">
+        <a href="{% url 'statistiques' %}" class="btn btn-accent">Voir les statistiques</a>
+        <a href="{% url 'historique_departement' %}" class="btn btn-ghost">Historique général</a>
+    </div>
+    {% else %}
+    <div class="dashboard-actions">
+        <a href="{% url 'historique_departement_role' user.role %}" class="btn btn-accent">Voir l'historique</a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

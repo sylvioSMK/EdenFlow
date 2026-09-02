@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titre %}Statistiques — Optic's Eden{% endblock %}
+{% block contenu %}
+<div class="dashboard-shell">
+    <div class="dashboard-header compact-header">
+        <div>
+            <p class="eyebrow">Administration</p>
+            <h1>Statistiques</h1>
+        </div>
+        <a href="{% url 'tableau_de_bord' %}" class="btn btn-ghost">Retour au dashboard</a>
+    </div>
+
+    <div class="stats-panel">
+        <div class="card stats-block">
+            <h2>Répartition par statut</h2>
+            <div class="bar-chart">
+                {% for item in statuts %}
+                    <div class="bar-line">
+                        <div class="bar-label">{{ item.label }}</div>
+                        <div class="bar-track">
+                            <span style="width: {{ item.width|floatformat:0 }}%"></span>
+                        </div>
+                        <strong>{{ item.value }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card stats-block">
+            <h2>Volume par département</h2>
+            <div class="bar-chart">
+                {% for item in volumes %}
+                    <div class="bar-line">
+                        <div class="bar-label">{{ item.label }}</div>
+                        <div class="bar-track">
+                            <span style="width: {{ item.width|floatformat:0 }}%"></span>
+                        </div>
+                        <strong>{{ item.value }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

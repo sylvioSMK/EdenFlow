@@ -17,13 +17,15 @@
         <span><strong>{{ user.get_full_name|default:user.username }}</strong><small>{{ user.get_role_display }}</small></span>
     </div>
     <nav class="side-nav" aria-label="Navigation principale">
-        <a href="{% url 'tableau_de_bord' %}"><span>⌂</span> Tableau de bord</a>
+        <a href="{% url 'tableau_de_bord' %}"><span>⌂</span> Dashboard</a>
+        <a href="{% url 'historique_departement_role' user.role %}"><span>◫</span> Historique</a>
         <a href="{% url 'recherche_fiches' %}"><span>⌕</span> Rechercher une fiche</a>
         {% if user.role == "VENTE" or user.role == "ADMIN" %}
         <a href="{% url 'nouvelle_fiche' %}"><span>＋</span> Nouvelle fiche</a>
         {% endif %}
         {% if user.role == "ADMIN" or user.is_superuser %}
         <a href="{% url 'gestion' %}"><span>⚙</span> Gestion du site</a>
+        <a href="{% url 'statistiques' %}"><span>▣</span> Statistiques</a>
         {% endif %}
     </nav>
     <div class="side-footer">
