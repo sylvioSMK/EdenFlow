@@ -78,9 +78,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
-# The application is configured to use MySQL in local test and production environments.
-# Credentials are supplied through environment variables so the code never contains
-# hard-coded database secrets.
+# MySQL is the default database backend for the project. This keeps the app
+# connected to the production-like database setup while the models are being
+# designed and refined.
 
 DB_NAME = config("DB_NAME", default="edenflow")
 DB_USER = config("DB_USER", default="root")
