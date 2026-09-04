@@ -1,50 +1,127 @@
-# EdenFlow — Gestion des fiches de commande
+# EdenFlow
 
-Application Django qui digitalise le circuit d'une fiche de commande entre
-Vente, Comptabilité et Conformité.
+Application Django pour la gestion des fiches de commande optique avec séparation des rôles : Vente, Comptabilité et Conformité.
 
-## Démarrage rapide
+## Objectif
+
+EdenFlow permet de suivre une fiche de commande depuis sa création jusqu’à sa validation finale, avec un circuit bien défini et un historique des actions.
+
+## Stack technique
+
+- Python
+- Django
+- MySQL
+- SQLite par défaut uniquement si nécessaire pour un essai local non productif
+
+## Structure du projet
+
+```text
+EdenFlow/
+├── config/
+│   ├── settings.py
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+├── comptes/
+│   ├── models.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   ├── tests.py
+│   └── __init__.py
+├── fiches/
+│   ├── models.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   ├── tests.py
+│   └── __init__.py
+├── manage.py
+├── requirements.txt
+├── .env
+├── .env.example
+├── README.md
+└── db.sqlite3
+```
+
+## Configuration
+
+Copiez `.env.example` vers `.env` et adaptez les valeurs selon votre environnement.
+
+Exemple :
+
+```env
+DEBUG=True
+DJANGO_SECRET_KEY=dev-secret-local-only
+ALLOWED_HOSTS=localhost,127.0.0.1,testserver
+DB_NAME=edenflow
+DB_USER=root
+DB_PASSWORD=
+DB_HOST=localhost
+DB_PORT=3306
+SESSION_COOKIE_SECURE=False
+CSRF_COOKIE_SECURE=False
+SESSION_COOKIE_HTTPONLY=True
+```
+
+## Installation
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate          # ou venv\Scripts\activate sous Windows
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# Linux/macOS
+source venv/bin/activate
+
 pip install -r requirements.txt
-python3 manage.py migrate
-python3 manage.py createsuperuser
-python3 manage.py runserver
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
 ```
 
-## Configuration MySQL et variables d'environnement
+## Modèles principaux
 
-Le projet utilise des variables d'environnement pour la base de données et la clé secrète Django. Copiez le fichier `.env.example` vers `.env` et adaptez les valeurs selon votre environnement.
+### Utilisateur
+- héritage de `AbstractUser`
+- rôle : Vente / Comptabilité / Conformité / Admin
+- département
+- statut actif/inactif
 
-Pour le développement local/test actuel, la configuration attend une base MySQL nommée `edenflow` sur `localhost`, avec un utilisateur `root` sans mot de passe. Cette configuration est acceptable uniquement pour le développement local. Avant toute mise en production, il faudra créer un utilisateur MySQL dédié non-root avec mot de passe fort, limité aux permissions strictement nécessaires sur la base `edenflow`.
+### FicheCommande
+- numéro de commande auto-généré
+- données client
+- données optiques (OD / OG)
+- montant, acompte, assurance
+- statut avec cycle complet :
+  - `CREEE`
+  - `ATTENTE_COMPTA`
+  - `ATTENTE_CONFORMITE`
+  - `TERMINEE`
+  - `ANNULEE`
 
-## Créer des comptes de test (un par rôle)
+### HistoriqueFiche
+- trace des actions et transitions
+- utile pour la traçabilité des validations
 
-```bash
-python3 manage.py shell
-```
-```python
-from comptes.models import Utilisateur
-Utilisateur.objects.create_user('vente1', password='motdepasse', role='VENTE', first_name='Marie-Gabrielle')
-Utilisateur.objects.create_user('compta1', password='motdepasse', role='COMPTABILITE')
-Utilisateur.objects.create_user('conformite1', password='motdepasse', role='CONFORMITE', first_name='Bienvenu')
-```
+## Développement actuel
 
-## Ce qui est fait (V1)
+Le projet est bien structuré en Django avec les modèles et les migrations. L’état actuel est orienté “base fonctionnelle métier” :
 
-- Modèles complets : FicheCommande, Utilisateur (avec rôles), HistoriqueFiche
-- Circuit de statut Créée → En attente Comptabilité → En attente Conformité → Terminée
-- Verrouillage anti-conflit : `FicheCommande.transiter()` empêche deux validations
-  simultanées de la même fiche (testé avec un scénario à deux "onglets")
-- Tableau de bord filtré par rôle, création de fiche, page de détail avec
-  actions conditionnées au rôle/statut, recherche, historique, admin Django
+- structure Django correctement installée
+- app `comptes` avec utilisateur personnalisé
+- app `fiches` avec fiche de commande et historique
+- configuration MySQL active
+- migrations synchronisées
 
-## Ce qui reste à faire (voir aussi le doc "structure-app-optics-eden")
+## À venir
 
-- Génération du PDF imprimable identique au formulaire papier (le bouton
-  "Imprimer" est présent dans le template mais pas encore branché)
-- Statut "Annulée" (le champ existe dans le modèle, pas encore de bouton)
-- Style à affiner (c'est une base fonctionnelle, pas encore peaufinée)
-- Déploiement + passage de SQLite à MySQL (le modèle est déjà compatible)
+- compléter les vues et templates
+- créer les parcours d’authentification et gestion
+- ajouter les formulaires de saisie
+- finaliser le tableau de bord et la logique métier
+- finaliser les exportations / pdf / impression
+- sécuriser la configuration de production
+
+## Auteur
+
+Projet interne / de développement EdenFlow.
